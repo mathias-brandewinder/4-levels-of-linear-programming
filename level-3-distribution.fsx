@@ -200,3 +200,12 @@ variables
 
 countries
 |> Seq.sumBy (fun kv -> kv.Population)
+
+variables
+|> Seq.groupBy (fun kv -> kv.Key.Origin)
+|> Seq.iter (fun (k,kv) ->
+    printfn $"{k}"
+    kv 
+    |> Seq.filter (fun x -> x.Value.SolutionValue() > 0.0)
+    |> Seq.iter (fun x -> printfn $"  {x.Key.Destination}")
+    )
