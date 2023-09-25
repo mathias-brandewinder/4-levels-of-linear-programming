@@ -69,3 +69,15 @@ countries
 |> Array.map (fun x ->
     x.Capital, distance g.Coords x.Coords
     )
+
+// long ~ 3000 kms
+countries
+|> Array.collect (fun origin ->
+    countries
+    |> Array.map (fun dest -> 
+        (origin.Name, dest.Name),
+        distance origin.Coords dest.Coords
+        )
+    )
+|> Array.sortByDescending (fun (_, d) -> d)
+|> Array.take 50
