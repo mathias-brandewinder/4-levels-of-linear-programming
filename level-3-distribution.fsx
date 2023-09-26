@@ -5,25 +5,16 @@ open Data
 countries
 |> Array.sumBy (fun x -> x.Population)
 
-// units per factory per unit of time
-let capacity = 200.0
-let machineCapacity = 50.0
-let machineCost = 10.0
+// fixed capacity is gone
+// let capacity = 200.0
 
+// NEW: MODIFIED FROM PREVIOUS SCRIPT
+let machineCapacity = 50.0
+// NEW: MODIFIED FROM PREVIOUS SCRIPT
+let machineCost = 10.0
 let unitSalePrice = 1.0 // price per unit sold
 // large distance ~ 3000 kms
 let transportationCost = 1.0 / 2500.
-
-type CountryID = | CountryID of string
-type FactoryID = | FactoryID of string
-
-type Factory = {
-    Location: string //CountryID
-    // Capacity: float
-    CountriesServed: CountryID []
-    // ProductionCostPerUnit: float
-    // CostPerUnitPerKilometer: float
-    }
 
 // countries served
 let factory1 = countries.[ 0 .. 9 ] |> Array.map (fun x -> x.Name)
@@ -63,13 +54,13 @@ Ireland
 #r "nuget: Google.OrTools, Version=9.7.2996"
 open Google.OrTools.LinearSolver
 
+// NEW: MODIFIED FROM PREVIOUS SCRIPT
 // Mixed Integer Linear Programming solver
 let solver = Solver.CreateSolver("SCIP")
 
-// constraint: each factory can ship only up to its capacity
-// constraint: each country can receive only up to its demand
-
 // variables: shipments (origin, destination)
+// -----------------------------------------------------------------------------
+
 type Shipment = {
     Origin: string
     Destination: string
@@ -83,7 +74,6 @@ let variables =
         let destinations =
             countries
             |> Array.map (fun c -> c.Name)
-            //kv.Value
         destinations
         |> Seq.map (fun country ->
             { Origin = factory; Destination = country },
@@ -93,16 +83,22 @@ let variables =
         )
     |> Map.ofSeq
 
-// how many machines do we have in a factory
+// NEW: MODIFIED FROM PREVIOUS SCRIPT
+// variables: how many machines do we have in each factory?
+// -----------------------------------------------------------------------------
+
 let factorySizes =
     factories
     |> Map.map (fun name _ ->
         solver.MakeIntVar(0, 10, $"SIZE {name}")
         )
 
+// NEW: MODIFIED FROM PREVIOUS SCRIPT
 // production capacity: we can ship only what we have machines for
 // sum shipments <= machines * machine capacity
 // capacity - shipments >= 0
+// -----------------------------------------------------------------------------
+
 factories
 |> Map.iter (fun factory destinations ->
     let c = solver.MakeConstraint($"Capacity {factory}")
@@ -120,13 +116,14 @@ factories
         )
     )
 
-// demand
+// demand constraint
+// constraint: each country can receive up to its demand
+// -----------------------------------------------------------------------------
+
 countries
 |> Array.iter (fun country ->
     let c = 
         solver.MakeConstraint(
-            // CHANGE FROM PREVIOUS MODEL
-            // country.Population,
             0.0,
             country.Population, 
             $"Demand {country}"
@@ -140,7 +137,10 @@ countries
         )
     )
 
-// objective
+
+// Objective
+// We want to maximize profit
+// -----------------------------------------------------------------------------
 
 let objective = solver.Objective()
 objective.SetMaximization()
@@ -160,6 +160,7 @@ variables
     objective.SetCoefficient(variable, profitPerUnit)
     )
 
+// NEW: MODIFIED FROM PREVIOUS SCRIPT
 // machine cost
 factorySizes
 |> Map.iter (fun factory size ->

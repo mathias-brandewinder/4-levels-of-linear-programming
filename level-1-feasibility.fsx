@@ -11,6 +11,7 @@ let factory3 = countries.[ 10 .. ] |> Array.map (fun x -> x.Name)
 let factory4 = countries.[ 10 .. 14 ] |> Array.map (fun x -> x.Name)
 let factory5 = countries.[ 13 .. 14 ] |> Array.map (fun x -> x.Name)
 
+// Each factory has a list of countries it can ship to
 let factories =
     [
         "FACTORY 1", factory1
@@ -31,10 +32,9 @@ open Google.OrTools.LinearSolver
 // Pure Linear Programming solver
 let solver = Solver.CreateSolver("GLOP")
 
-// constraint: each factory can ship only up to its capacity
-// constraint: each country must receive its demand
-
 // variables: shipments (origin, destination)
+// -----------------------------------------------------------------------------
+
 type Shipment = {
     Origin: string
     Destination: string
@@ -53,7 +53,10 @@ let variables =
         )
     |> Map.ofSeq
 
-// production capacity
+// production capacity constraint
+// constraint: each factory can ship only up to its capacity
+// -----------------------------------------------------------------------------
+
 factories
 |> Map.iter (fun factory destinations ->
     let c = solver.MakeConstraint(0.0, capacity, $"Capacity {factory}")
@@ -66,7 +69,10 @@ factories
         )
     )
 
-// demand
+// demand constraint
+// constraint: each country must receive its demand
+// -----------------------------------------------------------------------------
+
 countries
 |> Array.iter (fun country ->
     let c = 
@@ -85,6 +91,12 @@ countries
     )
 
 // ... and solve
+// Note: we do not even specify an objective function.
+// All we care about is "is there even 1 set of variables that works"
+// -----------------------------------------------------------------------------
+
 let solution = solver.Solve()
 
+// -----------------------------------------------------------------------------
+// What is the result?
 // At what capacity does it become infeasible / feasible?
