@@ -21,9 +21,13 @@ open Data
 let locations =
     countries
     |> Array.map (fun c -> c.Capital |> LocationID)
-//[| 'A' .. 'Z' |] |> Array.map (string >> LocationID)
 
 let n = locations |> Array.length
+
+// Variables
+// For each pair of location, ex Paris -> Berlin,
+// we create a boolean that indicates "do we go from Paris to Berlin"
+// -----------------------------------------------------------------------------
 
 let moves =
     [|
@@ -41,23 +45,31 @@ let moves =
     |]
     |> Map.ofArray
 
-// fake for now
-let rng = System.Random 0
+// We pre-compute the distance (the cost) of every move
+// between any pair of locations.
+// -----------------------------------------------------------------------------
+
 let costs =
     moves
     |> Map.map (fun move _ -> 
-        let origin = countries |> Array.find (fun x -> LocationID x.Capital = move.Origin)
-        let dest = countries |> Array.find (fun x -> LocationID x.Capital = move.Destination)
+        let origin = 
+            countries 
+            |> Array.find (fun x -> LocationID x.Capital = move.Origin)
+        let dest = 
+            countries 
+            |> Array.find (fun x -> LocationID x.Capital = move.Destination)
         let cost = distance origin.Coords dest.Coords
         cost
-        //rng.NextDouble()
         )
 
 // constraints
 // -----------------------------------------------------------------------------
 
+// constraint 1
 // every city is visited exactly once:
 // each city is entered exactly once.
+// -----------------------------------------------------------------------------
+
 locations
 |> Array.iter (fun location ->
     // create constraint
@@ -69,8 +81,11 @@ locations
     |> Map.iter (fun _ variable -> c.SetCoefficient(variable, 1.0))
     )
 
+// constraint 2
 // every city is visited exactly once:
 // each city is exited exactly once.
+// -----------------------------------------------------------------------------
+
 locations
 |> Array.iter (fun location ->
     // create constraint
@@ -82,12 +97,16 @@ locations
     |> Map.iter (fun _ variable -> c.SetCoefficient(variable, 1.0))
     )
 
-// no sub-cycles
-// create variables
+// constraint 3
+// no sub-cycles are allowed (ex: Paris -> Berlin -> Paris)
+// -----------------------------------------------------------------------------
 
 type Order = | Order of LocationID
 
-// TODO eliminate location 0
+// We create integer variables for locations 2 .. n,
+// indicating in which order location X is visited in the circuit.
+// -----------------------------------------------------------------------------
+
 let orders = 
     locations
     // ignore the first in the list: by convention, starting point
@@ -98,7 +117,10 @@ let orders =
         )
     |> Map.ofArray
 
+// We setup the following constraint,
+// which prevents sub-cycles in the circuit:
 // u_i - u_j + (n - 1) * x_i,j <= (n - 2) , 2 <= i <> j <= n
+// -----------------------------------------------------------------------------
 
 orders
 |> Map.iter (fun origin originVariable ->
@@ -109,6 +131,7 @@ orders
         if o <> d
         then
             let c = solver.MakeConstraint($"Cycle {origin} {destination}")
+
             c.SetCoefficient(originVariable, 1)
             c.SetCoefficient(destinationVariable, -1)
 
@@ -116,6 +139,9 @@ orders
             c.SetUb(float (n - 2))
         )
     )
+
+// objective: we minimize the total distance traveled
+// -----------------------------------------------------------------------------
 
 let objective = solver.Objective()
 moves
