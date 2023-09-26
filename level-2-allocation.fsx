@@ -128,13 +128,12 @@ variables
         |> Array.find (fun x -> 
             x.Name = shipment.Destination
             )
-    let travelDistance = distance origin.Coords dest.Coords
-    // profit per unit shipped
-    let profitPerUnit =
-        unitSalePrice
-        -
-        travelDistance * transportationCost
-    objective.SetCoefficient(variable, profitPerUnit)
+
+    // TODO
+    // Setup the coefficients of the relevant variables,
+    // so that each unit produces a profit of 
+    // unitSalePrice - travelDistance * transportationCost
+    failwith "TODO"
     )
 
 // ... and solve
@@ -147,27 +146,3 @@ variables
 // Which factories are fully utilized? Which are barely utilized?
 // Are we shipping all we could ship?
 // Which countries get / don't get all they wanted? Why?
-
-variables
-|> Seq.groupBy (fun kv -> kv.Key.Destination)
-|> Seq.map (fun (k, v) -> 
-    k, 
-    v 
-    |> Seq.sumBy (fun x -> x.Value.SolutionValue())
-    )
-|> Seq.toArray
-
-variables
-|> Seq.groupBy (fun kv -> kv.Key.Origin)
-|> Seq.map (fun (k, v) -> 
-    k, 
-    v 
-    |> Seq.sumBy (fun x -> x.Value.SolutionValue())
-    )
-|> Seq.toArray
-
-variables
-|> Seq.sumBy (fun kv -> kv.Value.SolutionValue())
-
-countries
-|> Seq.sumBy (fun kv -> kv.Population)

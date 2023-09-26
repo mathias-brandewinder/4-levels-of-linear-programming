@@ -81,13 +81,10 @@ countries
             country.Population, 
             $"Demand {country}"
             )
-    variables
-    |> Map.filter (fun shipment variable ->
-        shipment.Destination = country.Name
-        )
-    |> Map.iter (fun shipment variable ->
-        c.SetCoefficient(variable, 1.0)
-        )
+
+    // TODO
+    // Setup the coefficients of the relevant variables
+    failwith "TODO"
     )
 
 // ... and solve
@@ -99,4 +96,4 @@ let solution = solver.Solve()
 
 // -----------------------------------------------------------------------------
 // What is the result?
-// At what capacity does it become infeasible / feasible?
+// At what capacity does the problem become infeasible / feasible?

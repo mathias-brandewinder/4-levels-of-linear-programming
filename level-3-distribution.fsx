@@ -107,13 +107,10 @@ factories
     let factorySize = factorySizes.[factory]
     c.SetCoefficient(factorySize, machineCapacity)
     
-    variables
-    |> Map.filter (fun shipment variable ->
-        shipment.Origin = factory
-        )
-    |> Map.iter (fun shipment variable ->
-        c.SetCoefficient(variable, -1.0)
-        )
+    // TODO
+    // Setup the coefficients of the relevant variables,
+    // so the shipments from the factory are less than the capacity
+    failwith "TODO"
     )
 
 // demand constraint
@@ -136,7 +133,6 @@ countries
         c.SetCoefficient(variable, 1.0)
         )
     )
-
 
 // Objective
 // We want to maximize profit
@@ -162,51 +158,14 @@ variables
 
 // NEW: MODIFIED FROM PREVIOUS SCRIPT
 // machine cost
-factorySizes
-|> Map.iter (fun factory size ->
-    objective.SetCoefficient(size, - machineCost)
-    )
+
+// TODO:
+// each machine installed should cost us machineCost,
+// and reduce our profit accordingly
+
 
 // ... and solve
 let solution = solver.Solve()
 
-factorySizes
-|> Map.iter (fun factory size ->
-    printfn $"{factory}: {size.SolutionValue()}"
-    )
-
-variables
-|> Map.iter (fun k v -> printfn $"{k}: {v.SolutionValue()}")
-
-variables
-|> Seq.groupBy (fun kv -> kv.Key.Destination)
-|> Seq.map (fun (k, v) -> 
-    k, 
-    v 
-    |> Seq.sumBy (fun x -> x.Value.SolutionValue())
-    )
-|> Seq.toArray
-
-variables
-|> Seq.groupBy (fun kv -> kv.Key.Origin)
-|> Seq.map (fun (k, v) -> 
-    k, 
-    v 
-    |> Seq.sumBy (fun x -> x.Value.SolutionValue())
-    )
-|> Seq.toArray
-
-variables
-|> Seq.sumBy (fun kv -> kv.Value.SolutionValue())
-
-countries
-|> Seq.sumBy (fun kv -> kv.Population)
-
-variables
-|> Seq.groupBy (fun kv -> kv.Key.Origin)
-|> Seq.iter (fun (k,kv) ->
-    printfn $"{k}"
-    kv 
-    |> Seq.filter (fun x -> x.Value.SolutionValue() > 0.0)
-    |> Seq.iter (fun x -> printfn $"  {x.Key.Destination}")
-    )
+// How big are the optimal factories?
+// Is every country receiving its demand?

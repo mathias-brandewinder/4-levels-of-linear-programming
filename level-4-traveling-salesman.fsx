@@ -86,16 +86,10 @@ locations
 // each city is exited exactly once.
 // -----------------------------------------------------------------------------
 
-locations
-|> Array.iter (fun location ->
-    // create constraint
-    let c = solver.MakeConstraint($"Leave {location}")
-    c.SetBounds(1.0, 1.0)
-    moves
-    |> Map.filter (fun move _ -> move.Origin = location)
-    // sum = 1
-    |> Map.iter (fun _ variable -> c.SetCoefficient(variable, 1.0))
-    )
+// TODO
+// Setup the constraints
+
+
 
 // constraint 3
 // no sub-cycles are allowed (ex: Paris -> Berlin -> Paris)
@@ -119,7 +113,8 @@ let orders =
 
 // We setup the following constraint,
 // which prevents sub-cycles in the circuit:
-// u_i - u_j + (n - 1) * x_i,j <= (n - 2) , 2 <= i <> j <= n
+// u_i - u_j + (n - 1) * x_i,j <= (n - 2) , for 2 <= i <> j <= n
+// https://en.wikipedia.org/wiki/Travelling_salesman_problem#Miller%E2%80%93Tucker%E2%80%93Zemlin_formulation[21]
 // -----------------------------------------------------------------------------
 
 orders
@@ -131,12 +126,10 @@ orders
         if o <> d
         then
             let c = solver.MakeConstraint($"Cycle {origin} {destination}")
-
-            c.SetCoefficient(originVariable, 1)
-            c.SetCoefficient(destinationVariable, -1)
-
-            c.SetCoefficient(moves.[ { Origin = o; Destination = d } ], float (n - 1))
-            c.SetUb(float (n - 2))
+            // TODO
+            // setup the constraint, following this approach:
+            // https://en.wikipedia.org/wiki/Travelling_salesman_problem#Miller%E2%80%93Tucker%E2%80%93Zemlin_formulation[21]
+            ignore ()
         )
     )
 
