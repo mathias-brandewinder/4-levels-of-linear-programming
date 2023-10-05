@@ -40,19 +40,17 @@ type Shipment = {
     Destination: string
     }
 
-let variables = 
-    factories
-    |> Seq.collect (fun kv ->
-        let factory = kv.Key
-        let destinations = kv.Value
-        destinations
-        |> Seq.map (fun country ->
-            { Origin = factory; Destination = country },
-            solver.MakeNumVar(0.0, capacity, $"{factory}-{country}")
-            )
-        )
-    |> Map.ofSeq
 
+let variables =
+    [|
+        for KeyValue(factory,destinations) in factories do
+            for country in destinations do
+                let shipment = { Origin = factory; Destination = country }
+                let variable = solver.MakeNumVar(0.0, capacity, $"{factory}-{country}")
+                shipment, variable
+    |]
+    |> Map.ofSeq
+    
 // production capacity constraint
 // constraint: each factory can ship only up to its capacity
 // -----------------------------------------------------------------------------
