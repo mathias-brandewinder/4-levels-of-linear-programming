@@ -17,11 +17,11 @@ let unitSalePrice = 1.0 // price per unit sold
 let transportationCost = 1.0 / 2500.
 
 // countries served
-let factory1 = countries.[ 0 .. 9 ] |> Array.map (fun x -> x.Name)
-let factory2 = countries.[ 0 .. 4 ] |> Array.map (fun x -> x.Name)
-let factory3 = countries.[ 10 .. ] |> Array.map (fun x -> x.Name)
-let factory4 = countries.[ 10 .. 14 ] |> Array.map (fun x -> x.Name)
-let factory5 = countries.[ 13 .. 14 ] |> Array.map (fun x -> x.Name)
+let factory1 = countries |> Array.map (fun x -> x.Name)
+let factory2 = countries |> Array.map (fun x -> x.Name)
+let factory3 = countries |> Array.map (fun x -> x.Name)
+let factory4 = countries |> Array.map (fun x -> x.Name)
+let factory5 = countries |> Array.map (fun x -> x.Name)
 
 let factories =
     [
